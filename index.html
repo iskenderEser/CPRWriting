@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>FAST CPR Writing</title>
+
+  <style>
+    :root{
+      --bg:#ffffff;
+      --text:#111;
+      --muted:#666;
+      --border:#e6e6e6;
+      --soft:#fafafa;
+      --accent:#0b5fff;
+      --radius:14px;
+      --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial;
+    }
+
+    *{ box-sizing:border-box }
+
+    body{
+      margin:0;
+      font-family:var(--sans);
+      background:var(--bg);
+      color:var(--text);
+      padding:20px 14px 40px;
+    }
+
+    .container{
+      max-width:720px;
+      margin:0 auto;
+    }
+
+    h1{
+      font-size:20px;
+      margin:0 0 6px;
+    }
+
+    .sub{
+      font-size:13px;
+      color:var(--muted);
+      margin-bottom:18px;
+    }
+
+    .card{
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      padding:14px;
+      background:#fff;
+    }
+
+    label{
+      display:block;
+      font-size:12px;
+      color:var(--muted);
+      margin:14px 0 6px;
+    }
+
+    textarea{
+      width:100%;
+      min-height:80px;
+      resize:vertical;
+      padding:10px;
+      border:1px solid var(--border);
+      border-radius:12px;
+      font-family:var(--sans);
+      font-size:14px;
+      line-height:1.4;
+    }
+
+    textarea:focus{
+      outline:none;
+      border-color:var(--accent);
+      box-shadow:0 0 0 3px rgba(11,95,255,.12);
+    }
+
+    .tools{
+      display:flex;
+      justify-content:flex-end;
+      margin-top:6px;
+    }
+
+    button{
+      background:var(--soft);
+      border:1px solid var(--border);
+      border-radius:10px;
+      padding:6px 10px;
+      font-size:12px;
+      cursor:pointer;
+    }
+
+    button:hover{
+      background:#f0f0f0;
+    }
+
+    footer{
+      margin-top:18px;
+      font-size:12px;
+      color:var(--muted);
+      text-align:center;
+    }
+  </style>
+</head>
+
+<body>
+<div class="container">
+  <h1>FAST CPR Writing</h1>
+  <div class="sub">
+    Bu sayfa yalnızca CPR yazımı içindir.  
+    Herhangi bir değerlendirme, stil veya kural uygulanmaz.
+  </div>
+
+  <div class="card">
+
+    <label>Claim (Problem / Etki)</label>
+    <textarea id="claim" placeholder="Problemi veya etkiyi yazın..."></textarea>
+    <div class="tools">
+      <button onclick="clearField('claim')">Temizle</button>
+    </div>
+
+    <label>Proposition — Özellik</label>
+    <textarea id="feature" placeholder="Ürün özelliğini yazın..."></textarea>
+    <div class="tools">
+      <button onclick="clearField('feature')">Temizle</button>
+    </div>
+
+    <label>Proposition — Avantaj</label>
+    <textarea id="advantage" placeholder="Bu özelliğin sağladığı avantajı yazın..."></textarea>
+    <div class="tools">
+      <button onclick="clearField('advantage')">Temizle</button>
+    </div>
+
+    <label>Proposition — Fayda</label>
+    <textarea id="benefit" placeholder="Hekim / hasta açısından faydayı yazın..."></textarea>
+    <div class="tools">
+      <button onclick="clearField('benefit')">Temizle</button>
+    </div>
+
+    <label>Recommendation (Kapanış)</label>
+    <textarea id="recommendation" placeholder="Kapanış / aksiyon cümlesini yazın..."></textarea>
+    <div class="tools">
+      <button onclick="clearField('recommendation')">Temizle</button>
+    </div>
+
+  </div>
+
+  <footer>
+    FAST CPR Writing — düşün, yaz, üret.
+  </footer>
+</div>
+
+<script>
+  function clearField(id){
+    const el = document.getElementById(id);
+    el.value = "";
+    el.focus();
+  }
+</script>
+
+</body>
+</html>
