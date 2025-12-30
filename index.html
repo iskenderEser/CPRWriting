@@ -90,6 +90,11 @@
       cursor:pointer;
     }
 
+    button:disabled{
+      opacity:.55;
+      cursor:not-allowed;
+    }
+
     button:hover{
       background:#f0f0f0;
     }
@@ -143,6 +148,14 @@
       <button onclick="clearField('recommendation')">Temizle</button>
     </div>
 
+    <label>Birleştirilmiş CPR</label>
+    <textarea id="mergedCpr" placeholder="Tüm alanları doldurduktan sonra &quot;Birleştir&quot; ile otomatik oluşur..." readonly></textarea>
+    <div class="tools">
+      <button id="mergeBtn" onclick="mergeCPR()" disabled>Birleştir</button>
+      <button onclick="clearField('mergedCpr')">Temizle</button>
+    </div>
+
+
   </div>
 
   <footer>
@@ -151,11 +164,124 @@
 </div>
 
 <script>
+  const FIELDS = ["claim","feature","advantage","benefit","recommendation"];
+
+  function $(id){ return document.getElementById(id); }
+
   function clearField(id){
-    const el = document.getElementById(id);
+    const el = $(id);
     el.value = "";
     el.focus();
+    updateMergeState();
   }
+
+  function normalizeText(s){
+    return (s || "").trim().replace(/\s+/g," ");
+  }
+
+  function ensureEndPunctuation(s){
+    if(!s) return "";
+    return /[.!?…]$/.test(s) ? s : (s + ".");
+  }
+
+  function ensureQuestion(s){
+    if(!s) return "";
+    return /\?$/.test(s) ? s : (s + "?");
+  }
+
+  function pickByHash(seed, arr){
+    const h = Array.from(seed).reduce((acc,ch)=> (acc*31 + ch.charCodeAt(0)) >>> 0, 0);
+    return arr[h % arr.length];
+  }
+
+  function allFilled(){
+    return FIELDS.every(id => normalizeText($(id).value).length > 0);
+  }
+
+  function updateMergeState(){
+    const btn = $("mergeBtn");
+    if(!btn) return;
+    btn.disabled = !allFilled();
+  }
+
+  function mergeCPR(){
+    if(!allFilled()){
+      updateMergeState();
+      return;
+    }
+
+    const claim = normalizeText($("claim").value);
+    const feature = normalizeText($("feature").value);
+    const advantage = normalizeText($("advantage").value);
+    const benefit = normalizeText($("benefit").value);
+    const rec = normalizeText($("recommendation").value);
+
+    const c = ensureEndPunctuation(claim);
+
+    // Bağlaç havuzu (deterministik seçim: aynı içerik -> aynı bağlaç)
+    const connAdv = ["Bu sayede", "Bu nedenle", "Bu yüzden", "Bu özelliği sayesinde", "Bunun sonucu olarak"];
+    const connBen = ["Böylece", "Sonuç olarak", "Bu sayede", "Bu nedenle", "Bu yüzden"];
+
+    const seed = claim + "||" + feature + "||" + advantage + "||" + benefit;
+
+    const cAdv = pickByHash(seed + "|adv", connAdv);
+    const cBen = pickByHash(seed + "|ben", connBen);
+
+    function startsWithConnector(s){
+      return /^(Bu nedenle|Bu sayede|Bu yüzden|Böylece|Sonuç olarak|Bu özelliği sayesinde|Bunun sonucu olarak)\b/i.test(s || "");
+    }
+
+    function stripTrailingPunct(s){
+      return (s || "").trim().replace(/[\s\.,;:!?]+$/g, "").trim();
+    }
+
+    // Proposition: Özellik + Avantaj + Fayda'yı okunur bir paragraf hâline getir
+    let pText = "";
+    const f = stripTrailingPunct(feature);
+    const a = stripTrailingPunct(advantage);
+    const b = stripTrailingPunct(benefit);
+
+    if(f && a && b){
+      const advPart = startsWithConnector(advantage) ? advantage.trim() : `${cAdv} ${a}`;
+      const benPart = startsWithConnector(benefit) ? benefit.trim() : `${cBen} ${b}`;
+      // 2 cümlelik daha akıcı bir yapı
+      pText = `${f}. ${advPart}. ${benPart}`;
+    } else {
+      // Eksik alanlarda: eldeki parçaları birleştir, tek bağlaçla destekle
+      let prop = [feature, advantage, benefit].filter(Boolean).join(" ");
+      prop = normalizeText(prop);
+
+      const connectors = ["Bu nedenle", "Bu sayede", "Bu yüzden"];
+      const connector = pickByHash(seed, connectors);
+
+      const propWithConnector = startsWithConnector(prop) ? prop : (connector + " " + prop);
+      pText = propWithConnector;
+    }
+
+    const p = ensureEndPunctuation(pText);
+
+    // Recommendation: soru işaretiyle bitir ve gerekirse nazik kapanış kalıbı ekle
+    let rText = rec;
+    if(rec && !/\?/g.test(rec) && !/\bmisiniz\b/i.test(rec) && !/\bmısınız\b/i.test(rec)){
+      // "önerir misiniz?" gibi bir kapanış yoksa, yumuşak bir kalıp ekleyelim
+      rText = rec.replace(/[\s\.,;:!?]+$/g,"").trim();
+    }
+    const r = ensureQuestion(rText);
+
+    const full = `${c} ${p} ${r}`.replace(/\s+/g," ").trim();
+    $("mergedCpr").value = full;
+    $("mergedCpr").focus();
+    $("mergedCpr").setSelectionRange(0,0);
+  }
+
+  // Birleştir butonu sadece tüm alanlar doluyken aktif olsun
+  window.addEventListener("DOMContentLoaded", () => {
+    FIELDS.forEach(id => {
+      const el = $(id);
+      if(el) el.addEventListener("input", updateMergeState);
+    });
+    updateMergeState();
+  });
 </script>
 
 </body>
